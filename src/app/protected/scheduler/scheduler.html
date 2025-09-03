@@ -1,0 +1,27 @@
+<!-- title: Staff Schedule -->
+<h2>Staff Work Schedule</h2>
+<button id="openModalBtn">Add Shift</button>
+
+<!-- Modal -->
+<div id="shiftModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>Add Shift</h3>
+    <div style="display:flex; flex-direction:column; gap:0.5em;">
+      <select id="staffSelect">
+        <option value="Alice">Alice</option>
+        <option value="Bob">Bob</option>
+        <option value="Charlie">Charlie</option>
+        <option value="Diana">Diana</option>
+        <option value="Eve">Eve</option>
+      </select>
+      <input type="date" id="shiftDate" required>
+      <input type="time" id="startTime" required>
+      <input type="time" id="endTime" required>
+      <button id="saveShiftBtn">Save Shift</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar -->
+<div class="calendar" id="calendar"></div>

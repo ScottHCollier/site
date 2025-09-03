@@ -1,0 +1,51 @@
+#openModalBtn { background:#6200ee; color:#fff; padding:0.5em 1em; }
+#openModalBtn:hover { background:#7b39ff; }
+
+/* Calendar */
+.calendar {
+    display: grid;
+    grid-template-columns: 150px repeat(7,1fr);
+    gap: 4px;
+    margin-top: 1em;
+}
+.calendar div {
+    padding: 0.5em;
+    background: #1f1f1f;
+    border-radius: 6px;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.calendar .header { font-weight: bold; background:#2c2c2c; }
+.shift-off { background:#333; color:#888; }
+.shift-full { background:#9a63e8; color:#121212; }
+
+/* Modal */
+.modal {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    backdrop-filter: blur(4px);
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index:100;
+}
+.modal-content {
+    position: relative;
+    background:#1e1e1e;
+    padding:1em 2em;
+    border-radius:8px;
+    min-width:300px;
+    max-width:400px;
+}
+.modal .close { position:absolute; top:0.5em; right:1em; cursor:pointer; color:#bbb; }
+.modal .close:hover { color:#fff; }
+select,input[type="time"],input[type="date"] {
+    width:100%; padding:0.5em; margin:0.3em 0;
+    border-radius:5px; border:1px solid #555;
+    background:#1e1e1e; color:#e0e0e0;
+}

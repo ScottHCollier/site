@@ -1,0 +1,17 @@
+{
+  "name": "myapp",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"node build.js --dev\" \"live-server dist/\"",
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "chokidar": "^4.0.3",
+    "clean-css": "^5.3.3",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.25.9",
+    "html-minifier-terser": "^7.2.0",
+    "live-server": "^1.2.2",
+    "terser": "^5.44.0"
+  }
+}

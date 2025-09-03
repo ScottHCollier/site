@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
+  <!-- You can also include a fallback for older browsers -->
+  <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
+</head>
+<body>
+  <div id="global-loader">
+    <div class="spinner"></div>
+  </div>
+  <div id="page-wrapper">
+    <nav class="navbar">
+      <span>MyApp</span>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="scheduler.html">Scheduler</a>
+        <a href="#" id="logout-link">Logout</a>
+      </div>
+    </nav>
+    <div class="container">
+      {{content}}
+    </div>
+  </div>
+</body>
+</html>
