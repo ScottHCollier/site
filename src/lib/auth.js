@@ -1,27 +1,26 @@
 import { getSession } from './session.js';
 
-// Pages that require authentication
-const protectedPages = [
-    '/home.html',
-    '/scheduler.html',
-];
-
 export function initAuth() {
-    document.addEventListener("DOMContentLoaded", () => {
-        const session = getSession();
-        const pathname = window.location.pathname === '/' ? '/home.html' : window.location.pathname;
+    const wrapper = document.getElementById('page-wrapper');
+    const loader = document.getElementById('global-loader');
 
-        if (!session && protectedPages.includes(pathname)) {
-            window.location.href = '/login.html';
-            return;
-        }
+    const session = getSession();
+    const path = window.location.pathname;
+    const isLoginPage = path === '/' || path === '/index.html';
 
-        const wrapper = document.getElementById('page-wrapper');
-        if (wrapper) wrapper.style.display = 'block';
+    if (!session && !isLoginPage) {
+        window.location.href = '/';
+        return;
+    }
 
-        const loader = document.getElementById('global-loader');
-        if (loader) loader.style.display = 'none';
-    });
+    if (session && isLoginPage) {
+        window.location.href = '/scheduler.html';
+        return;
+    }
+
+    // Show content after auth check
+    if (wrapper) wrapper.style.display = 'block';
+    if (loader) loader.style.display = 'none';
 }
 
 export function initLogout() {
@@ -32,7 +31,7 @@ export function initLogout() {
         logoutLink.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem('session');
-            window.location.href = '/login.html';
+            window.location.href = '/';
         });
     });
 }

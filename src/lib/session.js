@@ -6,7 +6,7 @@ export function getSession() {
 
 export function logout() {
     localStorage.removeItem("session");
-    window.location.href = "/login.html";
+    window.location.href = "/";
 }
 
 export function setSession(session) {
