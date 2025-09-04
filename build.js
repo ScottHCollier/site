@@ -18,7 +18,7 @@ const globalJsFile = path.join(srcDir, "main.js");
 const publicDir = path.join(__dirname, "public");
 const assetsDir = path.join(outDir, "assets");
 
-// Clean output dir
+// --- Clean output ---
 if (fs.existsSync(outDir)) fs.rmSync(outDir, { recursive: true });
 fs.mkdirSync(outDir, { recursive: true });
 fs.mkdirSync(assetsDir, { recursive: true });
@@ -37,14 +37,14 @@ function copyPublic(src, dest) {
   }
 }
 
-// --- Recursively get HTML files (exclude layout.html) ---
-function getHtmlFiles(dir) {
+// --- Recursively get .vue files ---
+function getVueFiles(dir) {
   let results = [];
   fs.readdirSync(dir).forEach(file => {
     const fullPath = path.join(dir, file);
     const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) results = results.concat(getHtmlFiles(fullPath));
-    else if (file.endsWith(".html") && file !== "layout.html") results.push(fullPath);
+    if (stat.isDirectory()) results = results.concat(getVueFiles(fullPath));
+    else if (file.endsWith(".vue")) results.push(fullPath);
   });
   return results;
 }
@@ -60,7 +60,14 @@ function findLayout(filePath) {
   return null;
 }
 
-// --- Write global assets (CSS + bundled JS) ---
+// --- Extract <template>, <style>, <script> from .vue ---
+function extractTag(content, tag) {
+  const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "i");
+  const match = content.match(regex);
+  return match ? match[1] : "";
+}
+
+// --- Build global CSS and JS ---
 async function buildGlobalAssets() {
   // CSS
   if (fs.existsSync(globalCssFile)) {
@@ -70,7 +77,7 @@ async function buildGlobalAssets() {
     console.log(`[${new Date().toLocaleTimeString()}] Built style.css`);
   }
 
-  // JS (bundle with esbuild)
+  // JS
   if (fs.existsSync(globalJsFile)) {
     await esbuild.build({
       entryPoints: [globalJsFile],
@@ -79,87 +86,88 @@ async function buildGlobalAssets() {
       platform: "browser",
       format: "iife",
       outfile: path.join(assetsDir, "main.js"),
+      absWorkingDir: srcDir,
     });
     console.log(`[${new Date().toLocaleTimeString()}] Built main.js`);
   }
 }
 
 // --- Build a single page ---
-async function buildPage(pageHtmlPath) {
-  const filename = path.basename(pageHtmlPath); // flattened output
+async function buildPage(pageFile) {
+  const filename = path.basename(pageFile, ".vue") + ".html"; // flattened
   const outPath = path.join(outDir, filename);
 
-  let pageContent = fs.readFileSync(pageHtmlPath, "utf-8");
+  const contentRaw = fs.readFileSync(pageFile, "utf-8");
+  const template = extractTag(contentRaw, "template");
+  const style = extractTag(contentRaw, "style");
+  const script = extractTag(contentRaw, "script");
 
-  // Layout support
-  const layoutPath = findLayout(pageHtmlPath);
-  if (layoutPath) {
-    const layout = fs.readFileSync(layoutPath, "utf-8");
-    const titleMatch = pageContent.match(/<!--\s*title:\s*(.*?)\s*-->/);
-    const pageTitle = titleMatch ? titleMatch[1] : filename.replace(".html", "");
-    pageContent = pageContent.replace(/<!--\s*title:.*?-->\s*/, "");
-    pageContent = layout.replace("{{content}}", pageContent).replace("{{title}}", pageTitle);
+  const layoutPath = findLayout(pageFile);
+  let layout = layoutPath ? fs.readFileSync(layoutPath, "utf-8") : "<body>{{content}}</body>";
+
+  // Replace content
+  let html = layout.replace("{{content}}", template || "");
+
+  // Inject page-specific style
+  if (style) {
+    const minCss = minify ? new CleanCSS().minify(style).styles : style;
+    html = html.replace("</head>", `<style>${minCss}</style>\n</head>`);
   }
 
-  let html = pageContent;
-
-  // Inject global CSS + JS
+  // Inject global CSS
   if (fs.existsSync(globalCssFile)) {
     html = html.replace("</head>", `<link rel="stylesheet" href="assets/style.css">\n</head>`);
   }
-  if (fs.existsSync(globalJsFile)) {
-    html = html.replace("</body>", `<script src="assets/main.js"></script>\n</body>`);
-  }
 
-  // Per-page CSS
-  const pageCssFile = pageHtmlPath.replace(/\.html$/, ".css");
-  if (fs.existsSync(pageCssFile)) {
-    const cssName = path.basename(pageCssFile);
-    let css = fs.readFileSync(pageCssFile, "utf-8");
-    if (minify) css = new CleanCSS().minify(css).styles;
-    fs.writeFileSync(path.join(assetsDir, cssName), css);
-    html = html.replace("</head>", `<link rel="stylesheet" href="assets/${cssName}">\n</head>`);
-  }
+  // Bundle page-specific JS
+  let pageJsCode = "";
+  if (script) {
+    const tmpJsFile = pageFile.replace(".vue", ".tmp.js"); // temp next to source
+    fs.writeFileSync(tmpJsFile, script);
 
-  // Per-page JS (bundle with esbuild)
-  const pageJsFile = pageHtmlPath.replace(/\.html$/, ".js");
-  if (fs.existsSync(pageJsFile)) {
-    const jsName = path.basename(pageJsFile);
     await esbuild.build({
-      entryPoints: [pageJsFile],
+      entryPoints: [tmpJsFile],
       bundle: true,
       minify,
       platform: "browser",
       format: "iife",
-      outfile: path.join(assetsDir, jsName),
+      outfile: tmpJsFile,
+      absWorkingDir: srcDir, // allows imports from src/lib
+      allowOverwrite: true,
     });
-    html = html.replace("</body>", `<script src="assets/${jsName}"></script>\n</body>`);
-    console.log(`[${new Date().toLocaleTimeString()}] Built ${jsName}`);
+
+    pageJsCode = fs.readFileSync(tmpJsFile, "utf-8");
+    fs.unlinkSync(tmpJsFile);
   }
+
+  // Inject page JS and global JS
+  let scripts = [];
+  if (pageJsCode) scripts.push(pageJsCode);
+  if (fs.existsSync(path.join(assetsDir, "main.js")))
+    scripts.push(fs.readFileSync(path.join(assetsDir, "main.js"), "utf-8"));
+  if (scripts.length) html = html.replace("</body>", `<script>${scripts.join("\n")}</script>\n</body>`);
 
   // Minify HTML
-  const finalHtml = minify
-    ? await minifyHtml(html, {
-        collapseWhitespace: true,
-        removeComments: true,
-        removeRedundantAttributes: true,
-        removeEmptyAttributes: true,
-        minifyCSS: true,
-        minifyJS: true,
-      })
-    : html;
+  if (minify) {
+    html = await minifyHtml(html, {
+      collapseWhitespace: true,
+      removeComments: true,
+      removeRedundantAttributes: true,
+      removeEmptyAttributes: true,
+      minifyCSS: true,
+      minifyJS: true,
+    });
+  }
 
-  fs.writeFileSync(outPath, finalHtml);
-  console.log(`[${new Date().toLocaleTimeString()}] Built ${pageHtmlPath} → ${outPath}`);
+  fs.writeFileSync(outPath, html);
+  console.log(`[${new Date().toLocaleTimeString()}] Built ${pageFile} → ${outPath}`);
 }
 
-// --- Build all pages + assets ---
+// --- Build all pages ---
 async function buildAll() {
   await buildGlobalAssets();
-  const pages = getHtmlFiles(appDir);
-  for (const page of pages) {
-    await buildPage(page);
-  }
+  const pages = getVueFiles(appDir);
+  for (const page of pages) await buildPage(page);
   copyPublic(publicDir, path.join(outDir, "public"));
 }
 
