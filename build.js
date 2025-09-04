@@ -207,6 +207,18 @@ async function buildRootIndex() {
     html = html.replace("</body>", `<script src="assets/index.js"></script>\n</body>`);
   }
 
+    // --- Minify HTML ---
+  if (minify) {
+    html = await minifyHtml(html, {
+      collapseWhitespace: true,
+      removeComments: true,
+      removeRedundantAttributes: true,
+      removeEmptyAttributes: true,
+      minifyCSS: true,
+      minifyJS: true,
+    });
+  }
+
   fs.writeFileSync(path.join(outDir, "index.html"), html);
   console.log(`[${new Date().toLocaleTimeString()}] Built index.html`);
 }
