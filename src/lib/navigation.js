@@ -14,8 +14,8 @@ export function initNavigation() {
         let targetPath = url.pathname.replace(/\/$/, "");
         if (targetPath === "") targetPath = "/";
 
-        if ((currentPath === "/" && targetPath === "/index.html") ||
-            (currentPath === "/index.html" && targetPath === "/")) {
+        if ((currentPath === "/" && targetPath === "/home.html") ||
+            (currentPath === "/home.html" && targetPath === "/")) {
             targetPath = "/";
         }
 
@@ -24,7 +24,7 @@ export function initNavigation() {
 
     document.addEventListener("DOMContentLoaded", () => {
         let currentPath = window.location.pathname.replace(/\/$/, "");
-        if (currentPath === "" || currentPath === "/index.html") currentPath = "/";
+        if (currentPath === "" || currentPath === "/home.html") currentPath = "/";
 
         document.querySelectorAll(".navbar a").forEach(link => {
             const href = link.getAttribute("href");
@@ -32,7 +32,7 @@ export function initNavigation() {
 
             const url = new URL(href, window.location.origin + window.location.pathname);
             let targetPath = url.pathname.replace(/\/$/, "");
-            if (targetPath === "" || targetPath === "/index.html") targetPath = "/";
+            if (targetPath === "" || targetPath === "/home.html") targetPath = "/";
 
             if (currentPath === targetPath) link.classList.add("active");
 

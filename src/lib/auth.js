@@ -2,14 +2,14 @@ import { getSession } from './session.js';
 
 // Pages that require authentication
 const protectedPages = [
-    '/index.html',
+    '/home.html',
     '/scheduler.html',
 ];
 
 export function initAuth() {
     document.addEventListener("DOMContentLoaded", () => {
         const session = getSession();
-        const pathname = window.location.pathname === '/' ? '/index.html' : window.location.pathname;
+        const pathname = window.location.pathname === '/' ? '/home.html' : window.location.pathname;
 
         if (!session && protectedPages.includes(pathname)) {
             window.location.href = '/login.html';
