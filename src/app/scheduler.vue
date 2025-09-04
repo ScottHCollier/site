@@ -1,4 +1,3 @@
-<!-- title: Staff Schedule -->
 <template>
   <h2>Staff Work Schedule</h2>
   <button id="openModalBtn">Add Shift</button>

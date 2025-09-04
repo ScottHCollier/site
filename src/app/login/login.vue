@@ -1,4 +1,3 @@
-<!-- title: Login -->
 <template>
   <h1>Login</h1>
   <form id="loginForm">
