@@ -13,7 +13,7 @@ const outArg = args.find(arg => arg.startsWith("--out="));
 const outDir = outArg ? path.resolve(outArg.split("=")[1]) : path.join(__dirname, "dist");
 const srcDir = path.join(__dirname, "src");
 const appDir = path.join(srcDir, "app");
-const globalCssFile = path.join(srcDir, "styles.css");
+const globalCssFile = path.join(srcDir, "style.css");
 const globalJsFile = path.join(srcDir, "main.js");
 const publicDir = path.join(__dirname, "public");
 const assetsDir = path.join(outDir, "assets");
@@ -66,8 +66,8 @@ async function buildGlobalAssets() {
   if (fs.existsSync(globalCssFile)) {
     let css = fs.readFileSync(globalCssFile, "utf-8");
     if (minify) css = new CleanCSS().minify(css).styles;
-    fs.writeFileSync(path.join(assetsDir, "styles.css"), css);
-    console.log(`[${new Date().toLocaleTimeString()}] Built styles.css`);
+    fs.writeFileSync(path.join(assetsDir, "style.css"), css);
+    console.log(`[${new Date().toLocaleTimeString()}] Built style.css`);
   }
 
   // JS (bundle with esbuild)
@@ -105,7 +105,7 @@ async function buildPage(pageHtmlPath) {
 
   // Inject global CSS + JS
   if (fs.existsSync(globalCssFile)) {
-    html = html.replace("</head>", `<link rel="stylesheet" href="assets/styles.css">\n</head>`);
+    html = html.replace("</head>", `<link rel="stylesheet" href="assets/style.css">\n</head>`);
   }
   if (fs.existsSync(globalJsFile)) {
     html = html.replace("</body>", `<script src="assets/main.js"></script>\n</body>`);
