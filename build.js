@@ -119,11 +119,6 @@ async function buildPage(pageFile) {
     html = html.replace("</head>", `<link rel="stylesheet" href="assets/${cssFileName}">\n</head>`);
   }
 
-  // --- Global CSS ---
-  if (fs.existsSync(globalCssFile)) {
-    html = html.replace("</head>", `<link rel="stylesheet" href="assets/style.css">\n</head>`);
-  }
-
   // --- Page JS ---
   if (script) {
     const tmpJsFile = path.join(tmpDir, `${name}.js`);
@@ -143,11 +138,6 @@ async function buildPage(pageFile) {
 
     fs.unlinkSync(tmpJsFile); // clean temp file
     html = html.replace("</body>", `<script src="assets/${name}.js"></script>\n</body>`);
-  }
-
-  // --- Global JS ---
-  if (fs.existsSync(path.join(assetsDir, "main.js"))) {
-    html = html.replace("</body>", `<script src="assets/main.js"></script>\n</body>`);
   }
 
   // --- Minify HTML ---
@@ -172,40 +162,6 @@ async function buildRootIndex() {
   if (!fs.existsSync(srcIndex)) return;
 
   let html = fs.readFileSync(srcIndex, "utf-8");
-
-  // Global CSS
-  if (fs.existsSync(globalCssFile)) {
-    html = html.replace("</head>", `<link rel="stylesheet" href="assets/style.css">\n</head>`);
-  }
-
-  // index.css
-  const indexCss = path.join(srcDir, "index.css");
-  if (fs.existsSync(indexCss)) {
-    let css = fs.readFileSync(indexCss, "utf-8");
-    if (minify) css = new CleanCSS().minify(css).styles;
-    fs.writeFileSync(path.join(assetsDir, "index.css"), css);
-    html = html.replace("</head>", `<link rel="stylesheet" href="assets/index.css">\n</head>`);
-  }
-
-  // Global JS
-  if (fs.existsSync(path.join(assetsDir, "main.js"))) {
-    html = html.replace("</body>", `<script src="assets/main.js"></script>\n</body>`);
-  }
-
-  // index.js
-  const indexJs = path.join(srcDir, "index.js");
-  if (fs.existsSync(indexJs)) {
-    await esbuild.build({
-      entryPoints: [indexJs],
-      bundle: true,
-      minify,
-      platform: "browser",
-      format: "iife",
-      outfile: path.join(assetsDir, "index.js"),
-      absWorkingDir: srcDir,
-    });
-    html = html.replace("</body>", `<script src="assets/index.js"></script>\n</body>`);
-  }
 
     // --- Minify HTML ---
   if (minify) {
