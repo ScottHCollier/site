@@ -185,7 +185,7 @@ async function buildAll() {
   await buildRootIndex();
   const pages = getVueFiles(appDir);
   for (const page of pages) await buildPage(page);
-  copyPublic(publicDir, path.join(outDir, "public"));
+  copyPublic(publicDir, outDir);
 }
 
 // --- Initial build ---
